@@ -84,6 +84,7 @@ class POL(StockController):
 		self.update_stock_ledger()
 		self.update_general_ledger(1)
 		self.make_pol_entry()
+		self.post_journal_entry()
 	
 	def check_budget(self):
 		if self.hiring_cost_center:
