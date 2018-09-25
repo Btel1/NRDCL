@@ -283,7 +283,7 @@ class POL(StockController):
 		if not expense_bank_account:
  			frappe.throw("No Default Payable Account set in Company")
 
-		ba = get_equipment_ba(a.equipment) 
+		ba = get_equipment_ba(self.equipment) 
 
 		if expense_bank_account and pol_account:
 			je = frappe.new_doc("Journal Entry")
