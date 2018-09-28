@@ -104,31 +104,31 @@ def execute(filters=None):
 def get_account_type_based_data(cost_center, business_activity, company, account_type, period_list, accumulated_values):
 	data = {}
 	total = 0
-	ba = []
+	ba = ''
 	for period in period_list:
 		if business_activity:
-                ba.append(" and business_activity = '{0}'".format(business_activity))
+                ba = " and business_activity = '{0}'".format(business_activity)
         else:
-            	ba.append(" and 1 = 1 ")
+            	ba = " and 1 = 1 "
 		if not cost_center:
 			gl_sum = frappe.db.sql_list("""
 				select sum(credit) - sum(debit)
 				from `tabGL Entry`
-				where company=%s and posting_date >= %s and posting_date <= %s %(ba)s
+				where company=%s and posting_date >= %s and posting_date <= %s %s
 					and voucher_type != 'Period Closing Voucher'
 					and account in ( SELECT name FROM tabAccount WHERE account_type = %s)
 			""", (company, period["year_start_date"] if accumulated_values else period['from_date'],
-				period['to_date'], account_type, ba))
+				period['to_date'], ba, account_type))
 		else:
 			cost_centers = get_child_cost_centers(cost_center);
 			gl_sum = frappe.db.sql_list("""
 				select sum(credit) - sum(debit)
 				from `tabGL Entry`
-				where company=%s and cost_center IN %s and posting_date >= %s and posting_date <= %s %(ba)s
+				where company=%s and cost_center IN %s and posting_date >= %s and posting_date <= %s %s
 					and voucher_type != 'Period Closing Voucher'
 					and account in ( SELECT name FROM tabAccount WHERE account_type = %s)
 			""", (company, cost_centers, period["year_start_date"] if accumulated_values else period['from_date'],
-				period['to_date'], account_type, ba))
+				period['to_date'], ba, account_type))
 
 		if gl_sum and gl_sum[0]:
 			amount = gl_sum[0]
