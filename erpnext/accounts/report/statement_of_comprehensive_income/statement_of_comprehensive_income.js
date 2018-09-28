@@ -19,6 +19,12 @@ frappe.query_reports["Statement of Comprehensive Income"]["filters"].push(
 		"fieldtype": "Check",
 	},
 	{
+		"fieldname":"business_activity",
+		"label": __("Business Activity"),
+		"fieldtype": "Link",
+		"options": "Business Activity",
+}, {"fieldtype": "Break"},
+	{
 		"fieldname": "show_zero_values",
 		"label": __("Show zero values"),
 		"fieldtype": "Check"
