@@ -53,6 +53,15 @@ frappe.ui.form.on("Equipment", "refresh", function(frm) {
             }
         };
     });
+    cur_frm.set_query("hsd_type", function() {
+        return {
+            "filters": {
+		"is_pol_item": 1,
+		"is_hsd_item": 1,
+		"disabled": 0
+            }
+        };
+    });
     cur_frm.set_query("equipment_type", function() {
         return {
             "filters": {
@@ -98,7 +107,7 @@ cur_frm.fields_dict['operators'].grid.get_field('operator').get_query = function
 	}
 }
 
-frappe.ui.form.on('Equipment History', {
+/*frappe.ui.form.on('Equipment History', {
         before_equipment_history_remove: function(frm, cdt, cdn) {
                 doc = locals[cdt][cdn]
                 if(!doc.__islocal) {
@@ -106,4 +115,4 @@ frappe.ui.form.on('Equipment History', {
                 }
         }
 })
-
+*/

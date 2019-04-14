@@ -810,7 +810,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-09-01 14:53:54.486668", 
+ "modified": "2018-12-07 16:19:25.756101", 
  "modified_by": "Administrator", 
  "module": "Manufacturing", 
  "name": "BOM", 
@@ -857,9 +857,9 @@
    "write": 1
   }, 
   {
-   "amend": 0, 
+   "amend": 1, 
    "apply_user_permissions": 0, 
-   "cancel": 0, 
+   "cancel": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -873,7 +873,7 @@
    "role": "Administrator", 
    "set_user_permissions": 0, 
    "share": 1, 
-   "submit": 0, 
+   "submit": 1, 
    "write": 1
   }
  ], 
@@ -883,5 +883,6 @@
  "search_fields": "item", 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "track_changes": 0, 
  "track_seen": 0
 }

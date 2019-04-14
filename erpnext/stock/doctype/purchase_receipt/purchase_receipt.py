@@ -55,9 +55,6 @@ class PurchaseReceipt(BuyingController):
 			'extra_cond': """ and exists (select name from `tabPurchase Receipt` where name=`tabPurchase Receipt Item`.parent and is_return=1)"""
 		}]
 
-	def autoname(self):
-		self.name = make_autoname(get_auto_name(self, self.naming_series) + ".####")
-
 	def validate(self):
 		check_future_date(self.posting_date)
 		super(PurchaseReceipt, self).validate()
@@ -297,6 +294,7 @@ class PurchaseReceipt(BuyingController):
 				ae.item_code = a.item_code
 				ae.item_name = a.item_name
 				ae.qty = a.qty
+				ae.company = self.company
 				ae.received_date = self.posting_date
 				ae.ref_doc = self.name
 				ae.branch = frappe.db.get_value("Cost Center", a.cost_center, "branch")

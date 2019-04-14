@@ -12,7 +12,7 @@ app_email = "erpnext@dhi.bt"
 app_license = "GNU General Public License (v3)"
 source_link = "https://github.com/frappe/erpnext"
 
-error_report_email = "erpnext@dhi.bt"
+error_report_email = "tashi.dorji33@gmail.com"
 
 app_include_js = "assets/js/erpnext.min.js"
 app_include_css = "assets/css/erpnext.css"
@@ -128,9 +128,10 @@ dump_report_map = "erpnext.startup.report_data_map.data_map"
 
 before_tests = "erpnext.setup.utils.before_tests"
 
-"""standard_queries = {
-	"Customer": "erpnext.selling.doctype.customer.customer.get_customer_list"
-}"""
+standard_queries = {
+	"Business Activity": "erpnext.accounts.doctype.business_activity.business_activity.get_ba_list",
+	"Item Group": "erpnext.setup.doctype.item_group.item_group.get_item_groups",
+}
 
 doc_events = {
 	"Stock Entry": {
@@ -150,7 +151,7 @@ doc_events = {
 	},
 
 	# bubble transaction notification on master
-	('Opportunity', 'Quotation', 'Sales Order', 'Delivery Note', 'Sales Invoice',
+	('Product Requisition', 'Opportunity', 'Quotation', 'Sales Order', 'Delivery Note', 'Sales Invoice',
 		'Supplier Quotation', 'Purchase Order', 'Purchase Receipt',
 		'Purchase Invoice', 'Project', 'Issue'): {
 			'on_change': 'erpnext.accounts.party_status.notify_status'
@@ -183,8 +184,9 @@ scheduler_events = {
 		"erpnext.assets.doctype.asset.depreciation.post_depreciation_entries",
 		"erpnext.hr.doctype.officiating_employee.officiating_employee.check_off_exp",
 		"erpnext.maintenance.maintenance_utils.check_hire_end",
-		"erpnext.hr.hr_custom_functions.post_earned_leaves",
-		"erpnext.hr.hr_custom_functions.post_casual_leaves",
+		#"erpnext.hr.hr_custom_functions.post_earned_leaves",
+		#"erpnext.hr.hr_custom_functions.post_casual_leaves",
+                "erpnext.hr.hr_custom_functions.post_leave_credits",
 		"erpnext.custom_functions.check_pending_approvers"
 	],
 }

@@ -14,6 +14,7 @@ def get_notification_config():
                         },
 			#"Item": {"total_projected_qty": ("<", 0)},
 			"Lead": {"status": "Open"},
+			"Product Requisition": {"docstatus": 1},
 			"Contact": {"status": "Open"},
 			"Opportunity": {"status": "Open"},
 			"Quotation": {"docstatus": 0},

@@ -15,6 +15,7 @@ class MechanicalPayment(AccountsController):
 		check_future_date(self.posting_date)
 		self.validate_allocated_amount()
 		self.set_missing_values()
+		self.clearance_date = None
 
 	def set_missing_values(self):
 		self.cost_center = get_branch_cc(self.branch)
@@ -61,6 +62,9 @@ class MechanicalPayment(AccountsController):
 		self.update_ref_doc()
 
 	def on_cancel(self):	
+		if self.clearance_date:
+			frappe.throw("Already done bank reconciliation.")
+		
 		self.make_gl_entry()
 		self.update_ref_doc(cancel=1)
 
@@ -148,11 +152,13 @@ class MechanicalPayment(AccountsController):
 		make_gl_entries(gl_entries, cancel=(self.docstatus == 2),update_outstanding="No", merge_entries=False)
 
 	def get_transactions(self):
-		if not self.branch or not self.customer or not self.payment_for:
+		frappe.msgprint("this is called")
+		'''if not self.branch or not self.customer or not self.payment_for:
 			frappe.throw("Branch, Customer and Payment For is Mandatory")
-		transactions = frappe.db.sql("select name, outstanding_amount from `tab{0}` where customer = '{1}' and branch = '{2}' and outstanding_amount > 0 and docstatus = 1 order by creation".format(self.payment_for, self.customer, self.branch), as_dict=1)
+		transactions = frappe.db.sql("select name, outstanding_amount from `tab{0}` where customer = '{1}' and branch = '{2}' and outstanding_amount > 0 and docstatus = 1 order by creation".format(self.payment_for, self.customer, self.branch), as_dict=1)'''
+		transactions = frappe.db.sql("select name, outstanding_amount from `tabJob Card` where docstatus = 1 order by creation", as_dict=1)
 		self.set('items', [])
-
+		frappe.msgprint("{0}".format(transactions))
 		total = 0
                 for d in transactions:
                         d.reference_type = self.payment_for

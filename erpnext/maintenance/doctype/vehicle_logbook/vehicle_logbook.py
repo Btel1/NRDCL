@@ -94,10 +94,9 @@ class VehicleLogbook(Document):
 			frappe.throw(("Fill in all the VLB entries between '{0}' and '{1}'.").format(self.from_date, self.to_date))
 	
 	def on_cancel(self):
-		docs = check_uncancelled_linked_doc(self.doctype, self.name)
-                if docs != 1:
-                        frappe.throw("There is an uncancelled <b>" + str(docs[0]) + "("+ str(docs[1]) +")</b> linked with this document")
-		frappe.db.sql("delete from `tabEquipment Status Entry` where ehf_name = \'"+str(self.name)+"\'")
+		check_uncancelled_linked_doc(self.doctype, self.name)
+                frappe.db.sql("delete from `tabEquipment Status Entry` where ehf_name = \'"+str(self.name)+"\'")
+
 
 	def check_dates(self):
 		if getdate(self.from_date) > getdate(self.to_date):
@@ -163,6 +162,8 @@ class VehicleLogbook(Document):
 		
 		self.consumption = flt(self.other_consumption) + flt(self.consumption_hours) + flt(self.consumption_km)
 		self.closing_balance = flt(self.hsd_received) + flt(self.opening_balance) - flt(self.consumption)
+		self.final_hour = flt(self.initial_hour) + flt(self.total_work_time)
+		self.final_km = flt(self.initial_km) + flt(self.distance_km)
 
 	def update_hire(self):
 		if self.ehf_name:
@@ -187,9 +188,9 @@ class VehicleLogbook(Document):
 				workdates = a.work_date"""
 		
 			doc = frappe.new_doc("Equipment Status Entry")
-	
 			doc.flags.ignore_permissions = 1 
 			doc.equipment = self.equipment
+			doc.company = self.company
 			doc.reason = "Hire"
 			doc.ehf_name = self.name
 			doc.from_date = a.work_date
@@ -240,7 +241,7 @@ class VehicleLogbook(Document):
 		no_own_fuel_tank = frappe.db.get_value("Equipment Type", frappe.db.get_value("Equipment", self.equipment, "equipment_type"), "no_own_tank")
 		if no_own_fuel_tank:
 			return
-		if self.customer_type == "CDCL":
+		if self.customer_type == "Own Company":
 			if flt(self.consumption_km) == 0 and flt(self.consumption_hours) == 0 and flt(self.consumption) == 0:
 				self.check_condition()	
 		else:

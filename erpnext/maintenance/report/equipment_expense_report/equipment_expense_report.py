@@ -37,7 +37,8 @@ def get_conditions(filters):
 		reg_date	 = get_dates(filters, "reg", "registration_date")
 		mr_date		 = get_dates(filters, "mr_pay", "from_date", "to_date")
 		his_date         = get_dates(filters, "equipments", "eh.from_date", "eh.to_date") #added equ_his date
-	return  consumption_date, rate_date, jc_date, insurance_date, reg_date,  operator_date, tc_date, le_date, ss_date, not_cdcl, disable, mr_date, his_date
+		ot_date          = get_dates(filters, "ot", "posting_date")
+	return  consumption_date, rate_date, jc_date, insurance_date, reg_date,  operator_date, tc_date, le_date, ss_date, not_cdcl, disable, mr_date, his_date, ot_date
 
 def get_dates(filters, module = "", from_date_column = "", to_date_column = ""):
 	cond1 = ""
@@ -54,7 +55,7 @@ def get_dates(filters, module = "", from_date_column = "", to_date_column = ""):
 	return "({0} {1})".format(cond1, cond2)
 
 def get_data(filters):
-	consumption_date, rate_date, jc_date, insurance_date,  reg_date, operator_date, tc_date, le_date, ss_date, not_cdcl, disable, mr_date,his_date  =  get_conditions(filters)
+	consumption_date, rate_date, jc_date, insurance_date,  reg_date, operator_date, tc_date, le_date, ss_date, not_cdcl, disable, mr_date,his_date,ot_date  =  get_conditions(filters)
 	#frappe.msgprint(reg_date)
 	data = []
 	# checks if the equipment history branch equals the filters branch
@@ -84,18 +85,29 @@ def get_data(filters):
 					 group by eh.branch, eh.parent order by eh.branch, eh.parent
                         """.format(not_cdcll, branch_cond, dis, filters.from_date, filters.to_date)
         equipments = frappe.db.sql(query, as_dict=1);
-
+	vl_consumption = 0.0
     	for eq in equipments:
-		#frappe.msgprint("{0}".format(eq))
-                # `tabVehicle Logbook` 
-        	vl = frappe.db.sql("""
-                        	select sum(ifnull(consumption,0)) as consumption
-                        	from `tabVehicle Logbook`
-                        	where equipment = '{0}'
-                        	and   docstatus = 1
-				and   {1} and branch = '{2}' 
-                    """.format(eq.name,consumption_date, eq.branch), as_dict=1)[0]
-
+                # `tabVehicle Logbook`
+		if filters.own_cc:
+			frappe.msgprint("own cc")
+			vl = frappe.db.sql("""
+					select sum(ifnull(consumption,0)) as consumption
+					from `tabVehicle Logbook`
+					where equipment = '{0}'
+					and   docstatus = 1
+					and   {1} and rate_type = 'With Fuel' 
+			    """.format(eq.name,consumption_date), as_dict=1)[0]
+			vl_consumption = vl.consumption
+		else:
+			frappe.msgprint(" not own cc")
+			vl = frappe.db.sql("""
+                                        select sum(ifnull(consumption,0)) as consumption
+                                        from `tabVehicle Logbook`
+                                        where equipment = '{0}'
+                                        and   docstatus = 1
+                                        and   {1} 
+                            """.format(eq.name,consumption_date), as_dict=1)[0]
+			vl_consumption = vl.consumption
                 # `tabPOL`
             	pol = frappe.db.sql("""
                             	select (sum(qty*rate)/sum(qty)) as rate
@@ -136,11 +148,13 @@ def get_data(filters):
 				where eo.parent = '{0}' and eo.parent = eh.parent and eh.branch = '{1}'
 				and   eo.docstatus < 2
 			""".format(eq.name, eq.branch), as_dict=1)
+		frappe.msgprint("{0}".format(c_operator))
 		travel_claim = 0.0
 		e_amount     = 0.0
 		gross_pay    = 0.0
 		total_exp    = 0.0
 		total_sal    = 0.0
+		ot_amount    = 0.0
 		for co in c_operator:
 			#frappe.msgprint("{0}".format(co.branch)) 
 			if co.employee_type == "Muster Roll Employee":
@@ -182,7 +196,15 @@ def get_data(filters):
 						and   {1}
 					""".format(co.operator, le_date), as_dict=1, debug =1)[0]
 
-
+				#OverTime
+				ot = frappe.db.sql(""" 
+						select sum(ifnull(total_amount, 0)) as ot_amount
+						from `tabOvertime Application` ot
+						where employee = '{0}'
+						and docstatus = 1
+					""".format(co.operator), as_dict =1)[0]
+				ot_amount = flt(ot.ot_amount)		
+				frappe.msgprint("s {0}".format(ot))
 
 				cem = frappe.db.sql("""
 						select employee, gross_pay, start_date, end_date
@@ -226,7 +248,8 @@ def get_data(filters):
 				travel_claim += flt(tc.travel_claim)
 				e_amount     += flt(lea.e_amount) 
 				gross_pay    += flt(total_sal)
-		        total_exp = 	(flt(vl.consumption)*flt(pol.rate))+flt(ins.insurance)+flt(jc.goods_amount)+flt(reg.r_amount)+flt(jc.services_amount)+ travel_claim+e_amount + gross_pay
+				frappe.msgprint("{0}".format(vl_consumption))
+		        total_exp = 	(flt(vl_consumption)*flt(pol.rate))+flt(ins.insurance)+flt(jc.goods_amount)+flt(reg.r_amount)+flt(jc.services_amount)+ travel_claim+e_amount + gross_pay
 		data.append((	eq.branch,
 				eq.name,
 				eq.equipment_number,
@@ -238,6 +261,7 @@ def get_data(filters):
 				gross_pay,
 				e_amount,
 				travel_claim,
+				ot_amount,
 				total_exp))
     	return tuple(data)
 
@@ -254,6 +278,7 @@ def get_columns(filters):
 		("Gross Pay") + ":Float:120",
 		("Leave Encashment") + ":Currency:120",
 		("Travel Claim") + ":Currency:120",
+		("OverTime Amount") + ":Currency:120",
 		("Total Expense") + ":Currency:120"
 	]
 	return cols

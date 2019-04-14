@@ -13,14 +13,6 @@ frappe.query_reports["HSD Consumption Report"] = {
 
 		},
 		{
-                        "fieldname": "category",
-                        "label": ("Category"),
-                        "fieldtype": "Link",
-                        "width": "80",
-                        "options": "Equipment Category",
-                },
-
-		{
 			"fieldname":"from_date",
 			"label": ("From Date"),
 			"fieldtype": "Date",

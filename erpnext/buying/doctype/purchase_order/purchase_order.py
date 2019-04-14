@@ -42,9 +42,6 @@ class PurchaseOrder(BuyingController):
 			'overflow_type': 'order'
 		}]
 
-	def autoname(self):
-                self.name = make_autoname(get_auto_name(self, self.naming_series) + ".####")
-
 	def validate(self):
 		check_future_date(self.transaction_date)
 		super(PurchaseOrder, self).validate()
@@ -282,6 +279,7 @@ class PurchaseOrder(BuyingController):
 				"po_no": self.name,
 				"po_date": self.transaction_date,
 				"amount": amount,
+				"company": self.company,
 				"item_code": a.item_code,
 				"poi_name": a.name,
 				"date": frappe.utils.nowdate()

@@ -20,6 +20,7 @@ class IssuePOL(StockController):
 		self.validate_branch()
 		self.populate_data()
 		self.validate_data()
+		self.validate_branch()
 		self.validate_posting_time()
 		self.validate_uom_is_integer("stock_uom", "qty")
 		self.check_on_dry_hire()
@@ -33,6 +34,9 @@ class IssuePOL(StockController):
 
 		if self.tanker and self.branch != frappe.db.get_value("Equipment", self.tanker, "branch"):
 			frappe.throw("Selected Branch and Equipment Branch does not match")
+
+	def populate_data(self):
+		self.cost_center = get_branch_cc(self.branch)
 
 	def validate_warehouse(self):
 		self.validate_warehouse_branch(self.branch, self.warehouse)
@@ -142,27 +146,28 @@ class IssuePOL(StockController):
 				
 				#Do IC Accounting Entry if different branch
 				if comparing_branch != self.branch:
-					ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
-					if not ic_account:
-						frappe.throw("Setup Intra-Company Account in Accounts Settings")
+					allow_inter_company_transaction = frappe.db.get_single_value("Accounts Settings", "auto_accounting_for_inter_company")
+					if allow_inter_company_transaction:
+						ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
+						if not ic_account:
+							frappe.throw("Setup Intra-Company Account in Accounts Settings")
+						gl_entries.append(
+							prepare_gl(self, {"account": ic_account,
+									 "debit": flt(valuation_rate),
+									 "debit_in_account_currency": flt(valuation_rate),
+									 "cost_center": self.cost_center,
+									 "business_activity": get_equipment_ba(self.tanker)
+									})
+							)
 
-					gl_entries.append(
-						prepare_gl(self, {"account": ic_account,
-								 "debit": flt(valuation_rate),
-								 "debit_in_account_currency": flt(valuation_rate),
-								 "cost_center": self.cost_center,
-								 "business_activity": get_equipment_ba(self.tanker)
-								})
-						)
-
-					gl_entries.append(
-						prepare_gl(self, {"account": ic_account,
-								 "credit": flt(valuation_rate),
-								 "credit_in_account_currency": flt(valuation_rate),
-								 "cost_center": cc,
-								 "business_activity": get_equipment_ba(a.equipment)
-								})
-						)
+						gl_entries.append(
+							prepare_gl(self, {"account": ic_account,
+									 "credit": flt(valuation_rate),
+									 "credit_in_account_currency": flt(valuation_rate),
+									 "cost_center": cc,
+									 "business_activity": get_equipment_ba(a.equipment)
+									})
+							)
 					
 			else : #Transfer only if different warehouse
 				if wh != self.warehouse:
@@ -178,15 +183,11 @@ class IssuePOL(StockController):
 							{
 								"actual_qty": flt(a.qty), 
 								"warehouse": wh, 
-								"incoming_rate": valuation_rate
+								"incoming_rate": flt(map_rate)
 							}))
 
 				#Do IC Accounting Entry if different branch
 				if comparing_branch != self.branch:
-					ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
-					if not ic_account:
-						frappe.throw("Setup Intra-Company Account in Accounts Settings")
-
 					twh_account = frappe.db.get_value("Account", {"account_type": "Stock", "warehouse": wh}, "name")
 					if not twh_account:
 						frappe.throw(str(self.warehouse) + " is not linked to any account.")
@@ -209,23 +210,28 @@ class IssuePOL(StockController):
 								})
 						)
 
-					gl_entries.append(
-						prepare_gl(self, {"account": ic_account,
-								 "debit": flt(valuation_rate),
-								 "debit_in_account_currency": flt(valuation_rate),
-								 "cost_center": self.cost_center,
-								 "business_activity": get_equipment_ba(self.tanker)
-								})
-						)
+					allow_inter_company_transaction = frappe.db.get_single_value("Accounts Settings", "auto_accounting_for_inter_company")
+					if allow_inter_company_transaction:
+						ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
+						if not ic_account:
+							frappe.throw("Setup Intra-Company Account in Accounts Settings")
+						gl_entries.append(
+							prepare_gl(self, {"account": ic_account,
+									 "debit": flt(valuation_rate),
+									 "debit_in_account_currency": flt(valuation_rate),
+									 "cost_center": self.cost_center,
+									 "business_activity": get_equipment_ba(self.tanker)
+									})
+							)
 
-					gl_entries.append(
-						prepare_gl(self, {"account": ic_account,
-								 "credit": flt(valuation_rate),
-								 "credit_in_account_currency": flt(valuation_rate),
-								 "cost_center": cc,
-								 "business_activity": get_equipment_ba(a.equipment)
-								})
-						)
+						gl_entries.append(
+							prepare_gl(self, {"account": ic_account,
+									 "credit": flt(valuation_rate),
+									 "credit_in_account_currency": flt(valuation_rate),
+									 "cost_center": cc,
+									 "business_activity": get_equipment_ba(a.equipment)
+									})
+							)
 
 		if sl_entries: 
 			if self.docstatus == 2:
@@ -260,6 +266,7 @@ class IssuePOL(StockController):
 		if self.tanker:
 			con = frappe.new_doc("POL Entry")
 			con.flags.ignore_permissions = 1
+			con.company = self.company
 			con.equipment = self.tanker
 			con.pol_type = self.pol_type
 			con.branch = self.branch
@@ -280,6 +287,7 @@ class IssuePOL(StockController):
 			con = frappe.new_doc("POL Entry")
 			con.flags.ignore_permissions = 1
 			con.equipment = a.equipment
+			con.company = self.company
 			con.pol_type = self.pol_type
 			con.branch = a.equipment_branch
 			con.date = self.posting_date

@@ -65,6 +65,7 @@ frappe.ui.form.on('Vehicle Logbook', {
 		}
 	},
 	"initial_km": function(frm) {
+		cur_frm.set_value("final_km", parseFloat(frm.doc.initial_km) + parseFloat(frm.doc.distance_km))
 		calculate_distance_km(frm)
 	},
 	//"final_hour": function(frm) {
@@ -72,9 +73,10 @@ frappe.ui.form.on('Vehicle Logbook', {
 	//		calculate_work_hour(frm)
 	//	}
 	//},
-	//"initial_hour": function(frm) {
+	"initial_hour": function(frm) {
+		cur_frm.set_value("final_hour", parseFloat(frm.doc.initial_hour) + parseFloat(frm.doc.total_work_time))
 	//	calculate_work_hour(frm)
-	//},
+	},
 	"to_date": function(frm) {
 		if(frm.doc.from_date > frm.doc.to_date) {
 			frappe.msgprint("From Date cannot be greater than To Date")
@@ -222,7 +224,7 @@ function calculate_work_hour(frm) {
 			}
 		}
 	}
-	if(frm.doc.docstatus ==11111111111 ) {
+	if(frm.doc.docstatus == 1 ) {
 		cur_frm.set_value("final_hour", flt(frm.doc.total_work_time) + flt(frm.doc.initial_hour))
 		cur_frm.refresh_fields()
 	}
@@ -271,6 +273,10 @@ frappe.ui.form.on("Vehicle Log", {
 		//cur_frm.field_dict.vlogs.grid.toggle_reqd("idle_time", 1)
 	},
 	"work_time": function(frm, cdt, cdn) {
+		check(frm, cdt, cdn)
+		total_time(frm, cdt, cdn)
+        },
+	"qty_cft": function(frm, cdt, cdn) {
 		check(frm, cdt, cdn)
 		total_time(frm, cdt, cdn)
         },
@@ -330,25 +336,30 @@ function get_openings(equipment, from_date, to_date, pol_type) {
 }
 
 function total_time(frm, cdt, cdn) {
-	var total_idle = total_work = total_distance = 0;
+	var total_idle = total_work = total_distance = total_cft = 0;
 	frm.doc.vlogs.forEach(function(d) {
 		if(d.idle_time) { 
-			total_idle += d.idle_time
+			total_idle += flt(d.idle_time)
 		}
 		if(d.work_time) {
-			total_work += d.work_time
+			total_work += flt(d.work_time)
 		}
 		if(d.distance){
-			total_distance += d.distance
+			total_distance += flt(d.distance)
+		}
+		if(d.qty_cft){
+			total_cft += flt(d.qty_cft)
 		}
 	
 	})
 	frm.set_value("total_idle_time", total_idle)
 	frm.set_value("total_work_time", total_work)
 	frm.set_value("distance_km", total_distance)
+	frm.set_value("total_cft", total_cft)
 	cur_frm.refresh_field("total_work_time")
 	cur_frm.refresh_field("total_idle_time")
 	cur_frm.refresh_field("distance_km")
+	cur_frm.refresh_field("total_cft")
 }
 
 function calculate_time(frm, cdt, cdn) {

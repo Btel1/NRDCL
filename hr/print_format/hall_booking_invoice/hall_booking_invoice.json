@@ -1,0 +1,19 @@
+{
+ "creation": "2019-02-28 15:18:16.582968", 
+ "custom_format": 1, 
+ "disabled": 0, 
+ "doc_type": "Hall Booking", 
+ "docstatus": 0, 
+ "doctype": "Print Format", 
+ "font": "Default", 
+ "format_data": "[{\"fieldname\": \"print_heading_template\", \"fieldtype\": \"HTML\", \"options\": \" <span class=\\\"text-muted\\\" data-no-content=\\\"1\\\">Edit to set heading</span> \"}, {\"fieldtype\": \"Section Break\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"branch\"}, {\"print_hide\": 0, \"fieldname\": \"hall_type\"}, {\"print_hide\": 0, \"fieldname\": \"customer\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"from_date\"}, {\"print_hide\": 0, \"fieldname\": \"to_date\"}, {\"print_hide\": 0, \"fieldname\": \"no_of_days\"}, {\"fieldtype\": \"Section Break\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"rate\"}, {\"fieldtype\": \"Column Break\"}, {\"print_hide\": 0, \"fieldname\": \"amount\"}]", 
+ "html": "<div class=\"page-break\">\n    <div id=\"header-html\" class=\"hidden-pdf\">\n    {%- if letter_head and not no_letterhead -%}\n        <div class=\"letter-head\">\n            {{ letter_head }}\n        </div>\n    {%- endif -%}\n</div>\n\n<div id=\"footer-html\" class=\"visible-pdf\">\n    {% if not no_letterhead and footer %}\n        <div class=\"letter-head-footer\">\n        {{ footer }}\n        </div>\n    {% endif %}\n\n    <p class=\"text-center small page-number visible-pdf\">\n        {{ _(\"Page {0} of {1}\").format('<span class=\"page\"></span>', '<span class=\"topage\"></span>') }}\n    </p>\n</div>\n<div class=\"print-heading\">\n<div  style=\"text-align: center;\">\n\t<h3>Hall Booking Invoice</h3>\n<h5><u>\n{{doc.branch}}\n</u></h5>\n</div>\nsafkjaskdhaksjdhjkasd\n\n<br/>\n<table class = \"table1\" style=\"margin-top: 1px; text-align:justify;font-size:small; width:100% \">\n<tr>\n<td><strong>Customer:</strong></td>\n<td>{{doc.customer}}</td>\n<td><strong>Posting Date:</strong></td>\n<td>{{ frappe.utils.formatdate(doc.posting_date) }}</td>\n</tr>\n\n<tr>\n<td><strong>From Date:</strong></td>\n<td>{{ doc.from_date }}</td>\n<td><strong>Till Date:</strong></td>\n<td>{{doc.to_date}}</td>\n</tr>\n\n\n<tr>\n<td><strong>No of Days:</strong></td>\n<td>{{ doc.no_of_days }}</td>\n<td><strong>Rate:</strong></td>\n<td>{{doc.rate}}</td>\n</tr>\n\n<tr>\n<td></td>\n<td></td>\n<td><strong>Amount:</strong></td>\n<td>{{doc.amount}}</td>\n</tr>\n\n</table>\n<div class=\"printedby\">This print is system generated and should be considered VALID only with appropriate seal and/or signature. <br>  Printed by {{ frappe.user }} on {{ frappe.utils.nowdate()  }} at {{ frappe.utils.nowtime() }}</div>", 
+ "idx": 0, 
+ "modified": "2019-03-04 15:38:50.543895", 
+ "modified_by": "Administrator", 
+ "name": "Hall Booking Invoice", 
+ "owner": "Administrator", 
+ "print_format_builder": 1, 
+ "print_format_type": "Server", 
+ "standard": "Yes"
+}

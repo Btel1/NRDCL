@@ -201,29 +201,31 @@ class POL(StockController):
                         comparing_branch = self.equipment_branch
 
 		if comparing_branch != self.fuelbook_branch:
-			ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
-			if not ic_account:
-				frappe.throw("Setup Intra-Company Account in Accounts Settings")
+			allow_inter_company_transaction = frappe.db.get_single_value("Accounts Settings", "auto_accounting_for_inter_company")
+			if allow_inter_company_transaction:
+				ic_account = frappe.db.get_single_value("Accounts Settings", "intra_company_account")
+				if not ic_account:
+					frappe.throw("Setup Intra-Company Account in Accounts Settings")
 
-			customer_cc = get_branch_cc(comparing_branch)
+				customer_cc = get_branch_cc(comparing_branch)
 
-			gl_entries.append(
-				prepare_gl(self, {"account": ic_account,
-						 "credit": flt(self.total_amount),
-						 "credit_in_account_currency": flt(self.total_amount),
-						 "cost_center": customer_cc,
-						 "business_activity": default_ba
-						})
-				)
+				gl_entries.append(
+					prepare_gl(self, {"account": ic_account,
+							 "credit": flt(self.total_amount),
+							 "credit_in_account_currency": flt(self.total_amount),
+							 "cost_center": customer_cc,
+							 "business_activity": default_ba
+							})
+					)
 
-			gl_entries.append(
-				prepare_gl(self, {"account": ic_account,
-						 "debit": flt(self.total_amount),
-						 "debit_in_account_currency": flt(self.total_amount),
-						 "cost_center": self.cost_center,
-						 "business_activity": default_ba
-						})
-				)
+				gl_entries.append(
+					prepare_gl(self, {"account": ic_account,
+							 "debit": flt(self.total_amount),
+							 "debit_in_account_currency": flt(self.total_amount),
+							 "cost_center": self.cost_center,
+							 "business_activity": default_ba
+							})
+					)
 
 		from erpnext.accounts.general_ledger import make_gl_entries
 		if post:
@@ -241,9 +243,13 @@ class POL(StockController):
 			if not expense_account:
 				frappe.throw("Set Budget Account in Equipment Category or Item Master")		
 		else:
-			expense_account = frappe.db.get_value("Account", {"account_type": "Stock", "warehouse": self.warehouse}, "name")
-			if not expense_account:
-				frappe.throw(str(self.warehouse) + " is not linked to any account.")
+			if self.hiring_warehouse:
+                                wh = self.hiring_warehouse
+                        else:
+                                wh = self.equipment_warehouse
+                        expense_account = frappe.db.get_value("Account", {"account_type": "Stock", "warehouse": wh}, "name")
+                        if not expense_account:
+                                frappe.throw(str(wh) + " is not linked to any account.")
 		return expense_account
 
 	def on_cancel(self):
@@ -336,6 +342,7 @@ class POL(StockController):
 		con.date = self.posting_date
 		con.posting_time = self.posting_time
 		con.qty = self.qty
+		con.company = self.company
 		con.reference_type = "POL"
 		con.reference_name = self.name
 		con.is_opening = 0
@@ -347,6 +354,7 @@ class POL(StockController):
 		if self.direct_consumption:
 			con1 = frappe.new_doc("POL Entry")
 			con1.flags.ignore_permissions = 1	
+			con1.company = self.company
 			con1.equipment = self.equipment
 			con1.pol_type = self.pol_type
 			con1.branch = self.equipment_branch
@@ -363,6 +371,7 @@ class POL(StockController):
 			if container:
 				con2 = frappe.new_doc("POL Entry")
 				con2.flags.ignore_permissions = 1	
+				con2.company = self.company
 				con2.equipment = self.equipment
 				con2.pol_type = self.pol_type
 				con2.branch = self.equipment_branch

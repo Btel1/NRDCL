@@ -14,6 +14,13 @@ def get_data():
 					"description": _("Quotes to Leads or Customers."),
 				},
 				{
+                                        "type": "doctype",
+                                        "name": "Product Requisition",
+                                        "label": "Product Requisition",
+                                        "description": _("Customer Requisition For Products"),
+                                },
+
+				{
 					"type": "doctype",
 					"name": "Sales Order",
 					"description": _("Confirmed orders from Customers."),
@@ -71,6 +78,13 @@ def get_data():
 				#	"label": "Materialwise Sales History"
 				#},
 				{
+                                        "type": "report",
+                                        "is_query_report": True,
+                                        "name": "Sales Report",
+                                        "label": "Sales Report",
+                                        "doctype": "Sales Order"
+                                },
+				{
 					"type": "report",
 					"is_query_report": True,
 					"name": "Quotation Trends",
@@ -113,6 +127,12 @@ def get_data():
 					"name": "sales-analytics",
 					"label": "Sales Analytics"
 				},
+				{
+					"type": "report",
+					"name": "Advance Report",
+					"doctype": "Payment Entry",
+					"is_query_report": True,
+				},
 			]
 		},
 		{
@@ -146,9 +166,8 @@ def get_data():
 				},
 				{
 					"type" : "doctype",
-					"name": "Stock Price Template",
-					"description": _("Price Template for Mines Products"),
-					"label": _("COP/ Sales Price Template"),
+					"name": "Selling Price",
+					"label": _("Selling Price Settings"),
 				},
 			]
 		},

@@ -3,6 +3,25 @@
 cur_frm.add_fetch("branch", "revenue_bank_account", "income_account")
 
 frappe.ui.form.on('Mechanical Payment', {
+	onload: function(frm) {
+		cur_frm.set_query("income_account", function(){
+			return {
+				"filters": [
+					["is_group", "=", "0"],
+					
+				]
+			}
+		});
+		cur_frm.set_query("tds_account", function(){
+			return {
+				"filters": [
+					["is_group", "=", "0"],
+					
+				]
+			}
+		});
+	get_er_items(frm);	
+	},
 	refresh: function(frm) {
 		if(frm.doc.docstatus===1){
 			frm.add_custom_button(__('Accounting Ledger'), function(){
@@ -38,7 +57,7 @@ frappe.ui.form.on('Mechanical Payment', {
 		});
 	},
 
-	get_transactions: function(frm) {
+	/*get_transactions: function(frm) {
 		//load_accounts(frm.doc.company)
 		return frappe.call({
 			method: "get_transactions",
@@ -50,7 +69,7 @@ frappe.ui.form.on('Mechanical Payment', {
 			freeze: true,
 			freeze_message: "Fetching Transactions......Please Wait"
 		});
-	},
+	},*/
 
 	"receivable_amount": function(frm) {
 		if(frm.doc.receivable_amount > frm.doc.actual_amount) {
@@ -102,6 +121,19 @@ cur_frm.fields_dict['items'].grid.get_field('reference_name').get_query = functi
 		}
 	}
 }
+
+function get_er_items(frm) {
+                return frappe.call({
+                        method: "get_transactions",
+                        doc: frm.doc,
+                        callback: function(r, rt) {
+                                frm.refresh_field("items");
+                                frm.refresh_fields();
+                        },
+                        freeze: true,
+                        freeze_message: "Fetching Transactions......Please Wait"
+                });
+        }
 
 frappe.ui.form.on("Mechanical Payment Item", {
 	"reference_name": function(frm, cdt, cdn) {

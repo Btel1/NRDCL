@@ -48,7 +48,16 @@ frappe.ui.form.on('Equipment Hiring Form', {
                                         cur_frm.set_value("branch", r.message.branch);
                                 }
                         });
+		get_er_items(frm);
                 }
+		/*if(frm.doc.er_reference) {
+			frappe.call({
+				method: "erpnext.maintainance.doctype.equipment_hiring_form.get_items",
+				args: {"doc": frm.doc.er_reference},
+				callback(r) {
+					frappe.model.set_value(cdt, cdn,"equipment_type", r.equipment_type)
+				}		
+				*/	
 	},
 	"total_hiring_amount": function(frm) {
 		if(frm.doc.docstatus != 1 && frm.doc.private == "Private") {
@@ -71,7 +80,7 @@ frappe.ui.form.on('Equipment Hiring Form', {
 		get_advance_balance(frm);
 		calculate_advance_amount(frm);
 		
-	}	
+	},
 });
 
 function calculate_advance_amount(frm){
@@ -86,6 +95,11 @@ function calculate_advance_amount(frm){
 frappe.ui.form.on("Equipment Hiring Advance", {
 	"allocated_amount": function(frm, cdt, cdn){
 		var child = locals[cdt][cdn];
+
+		if(child.allocated_amount > child.amount){
+			frappe.model.set_value(child.doctype, child.name, "allocated_amount", child.amount);  
+		}
+
 		var total_balance = 0;
 		frm.doc.balance_advance_details.forEach(function(d){
 			if(d.allocated_amount > 0){
@@ -95,6 +109,13 @@ frappe.ui.form.on("Equipment Hiring Advance", {
 		cur_frm.set_value("prev_advance_balance", total_balance);
 	}
 });
+
+/*var get_request_items = function(doc){
+        cur_frm.call({
+                method: "get_request_items",
+                doc: doc
+        });
+}*/
 
 cur_frm.add_fetch("tc_name", "terms", "terms")
 
@@ -133,10 +154,28 @@ function calculate_datetime(frm, cdt, cdn) {
 	cur_frm.refresh_field("number_of_days")
 }
 
+
+function get_er_items(frm) {
+                return frappe.call({
+                        method: "get_transactions",
+                        doc: frm.doc,
+                        callback: function(r, rt) {
+                                frm.refresh_field("items");
+                                frm.refresh_fields();
+                        },
+                });
+        }
+
+
 //Hiring Approval Details
 cur_frm.add_fetch("equipment", "equipment_number", "equipment_number")
 
 frappe.ui.form.on("Hiring Approval Details", {
+	refresh: function(frm, cdt, cdn) {
+		doc = locals[cdt][cdn]
+		if(doc.rate_type) {
+			get_rates(frm, cdt, cdn)
+	}},
 	"from_date": function(frm, cdt, cdn) {
 		calculate_datetime(frm, cdt, cdn)
 	},
@@ -149,6 +188,9 @@ frappe.ui.form.on("Hiring Approval Details", {
 			calculate_datetime(frm, cdt, cdn)
 		}
 	},
+	"rate_type": function(frm, cdt, cdn) {
+                get_rates(frm, cdt, cdn)
+        },
 	"rate": function(frm, cdt, cdn) {
 		calculate_amount(frm, cdt, cdn)
 	},
@@ -176,13 +218,11 @@ frappe.ui.form.on("Hiring Approval Details", {
 	"grand_total": function(frm, cdt, cdn) {
 		calculate_total(frm)
 	},
-	"equipment": function(frm, cdt, cdn) {
-		get_rates(frm, cdt, cdn)
-	},
 	"rate_type": function(frm, cdt, cdn) {
 		get_rates(frm, cdt, cdn)
 	},
 	"equipment": function(frm, cdt, cdn) {
+                get_rates(frm, cdt, cdn)
 		doc = locals[cdt][cdn]
 		cur_frm.fields_dict.approved_items.grid.toggle_reqd("equipment_number", doc.equipment)
 		cur_frm.fields_dict.approved_items.grid.toggle_reqd("rate_type", doc.equipment)
@@ -217,6 +257,7 @@ function get_rates(frm, cdt, cdn) {
 			method: "erpnext.maintenance.doctype.equipment_hiring_form.equipment_hiring_form.get_hire_rates",
 			args: {"e": doc.equipment, "from_date": doc.from_date},
 			callback: function(r) {
+				console.log("hii")
 				if(r.message) {
 					if(doc.rate_type == "Without Fuel") {
 						frappe.model.set_value(cdt, cdn, "rate", r.message[0].without_fuel)
@@ -294,8 +335,10 @@ frappe.ui.form.on("Equipment Hiring Form", "refresh", function(frm) {
 		doc = locals[cdt][cdn]
 		return {
 			"query": "erpnext.maintenance.doctype.equipment_hiring_form.equipment_hiring_form.equipment_query",
-			filters: {'branch': frm.doc.branch, 'equipment_type': doc.equipment_type, "from_date": doc.from_date, "to_date": doc.to_date}
+			filters: {'branch': frm.doc.branch, 'equipment_type': doc.equipment_type, "from_date": doc.from_date, "to_date": doc.to_date,
+			"from_time": doc.from_time, "to_time": doc.to_time}
 		}
+	
 	}
 	cur_frm.set_query("tc_name", function() {
 		return {
@@ -387,10 +430,27 @@ function get_advance_balance(form) {
 			},
 			callback: function(r){
 				if(r.message){
-					var total_amount = 0;
+					var allocated_amount = 0;
+					var flag = 1;
+					var total_allocated_amount = 0;
 					cur_frm.clear_table("balance_advance_details");
+					balance_THC = form.doc.total_hiring_amount;
 					r.message.forEach(function(dtl) {
-						console.log(dtl);
+					//	console.log(dtl);
+					if(flag){
+					    if(dtl['amount'] > balance_THC){
+					         allocated_amount = balance_THC;
+						 flag = 0;	
+					    }
+					    else{
+		                                 allocated_amount = dtl['amount'];
+						 balance_THC = balance_THC - allocated_amount; 
+						 if(balance_THC <= 0)
+							flag = 0;
+					    }						
+					} 
+					console.log("Allocated Amount:" + allocated_amount); 
+					console.log("Balance THC:" + balance_THC);
 				        var row = frappe.model.add_child(cur_frm.doc, "Equipment Hiring Advance", "balance_advance_details");
 						row.reference_row = dtl['name'];
 						row.amount = dtl['amount'];
@@ -400,9 +460,13 @@ function get_advance_balance(form) {
 						row.cost_center = dtl['cost_center'];
 						row.posting_date = dtl['posting_date'];
 						row.jv_name = dtl['jv_name'];
+						row.allocated_amount = allocated_amount;
 						row.advance_account = dtl['advance_account'];
 						refresh_field("balance_advance_details");						
+					total_allocated_amount += allocated_amount; 
 					});
+					cur_frm.set_value("prev_advance_balance", total_allocated_amount);
+					calculate_advance_amount(form);
 					cur_frm.refresh();
 				}
 				else {

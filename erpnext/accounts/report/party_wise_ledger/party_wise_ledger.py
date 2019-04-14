@@ -41,31 +41,37 @@ def get_data(filters, show_party_name):
 	company_currency = frappe.db.get_value("Company", filters.company, "default_currency")
 	opening_balances = get_opening_balances(filters)
 	balances_within_period = get_balances_within_period(filters)
-	
 	data = []
-	tot_op_dr, tot_op_cr, total_debit, total_credit, tot_cl_dr, tot_cl_cr = 0, 0, 0, 0, 0, 0
-	for party in parties:
-		row = { "party": party.name }
+	frappe.msgprint("yes")
+	opening = frappe._dict()
+	for op in get_opening_balances(filters):
+                opening_debit, opening_credit = toggle_debit_credit(op.opening_debit, op.opening_credit)
+                opening.setdefault(op.party, [opening_debit, opening_credit])
+		#frappe.msgprint("gg {0}".format(op))
+		tot_op_dr, tot_op_cr, total_debit, total_credit, tot_cl_dr, tot_cl_cr = 0, 0, 0, 0, 0, 0
+		row = { "party": op.party }
 		if show_party_name:
-			row["party_name"] = party.get(party_name_field)
+			row["party_name"] = op.get(party_name_field)
 		
 		# opening
-		opening_debit, opening_credit = opening_balances.get(party.name, [0, 0])
+		opening_debit, opening_credit = op.get(op.party, [0, 0])
+		#opening_debit, opening_credit = op.opening_debit, op.closing_credit
 		row.update({
 			"opening_debit": opening_debit,
 			"opening_credit": opening_credit
 		})
-
 		tot_op_dr += flt(opening_debit)
 		tot_op_cr += flt(opening_credit)
-		
+	balances_within_period = frappe._dict()
+	for ge in get_balances_within_period(filters):
 		# within period
-		debit, credit = balances_within_period.get(party.name, [0, 0])
+                balances_within_period.setdefault(ge.party, [ge.debit, ge.credit])
+		debit, credit = ge.get(ge.party, [0, 0])
 		row.update({
 			"debit": debit,
 			"credit": credit
 		})
-		
+		frappe.msgprint("{0}".format(debit))	
 		# totals
 		total_debit += debit
 		total_credit += credit
@@ -88,8 +94,8 @@ def get_data(filters, show_party_name):
 		if (opening_debit or opening_credit or debit or credit or closing_debit or closing_credit):
 			has_value  =True
 		
-		if cint(filters.show_zero_values) or has_value:
-			data.append(row)
+		#if cint(filters.show_zero_values) or has_value:
+		data.append(row)
 
 	# Add total row
 	if total_debit or total_credit:
@@ -116,7 +122,7 @@ def get_opening_balances(filters):
         '''
         
 	gle = frappe.db.sql("""
-		select party, sum(debit) as opening_debit, sum(credit) as opening_credit 
+		select party, cost_center, sum(debit) as opening_debit, sum(credit) as opening_credit 
 		from `tabGL Entry` as ge
 		where company=%(company)s 
 		and ifnull(party_type, '') = %(party_type)s and ifnull(party, '') != ''
@@ -127,7 +133,7 @@ def get_opening_balances(filters):
 		and not exists(select 1 from `tabAccount` as ac
                                 where ac.name = ge.account
                                 and ac.parent_account = 'Sale of mines product - SMCL')
-		group by party""", {
+		group by party, cost_center""", {
 			"company": filters.company,
 			"from_date": filters.from_date,
 			"party_type": filters.party_type,
@@ -135,12 +141,14 @@ def get_opening_balances(filters):
 			"cost_center": filters.cost_center
 		}, as_dict=True)
 		
-	opening = frappe._dict()
+	'''opening = frappe._dict()
+	cost_center = 
 	for d in gle:
+		cost_center = d.cost_center
 		opening_debit, opening_credit = toggle_debit_credit(d.opening_debit, d.opening_credit)
 		opening.setdefault(d.party, [opening_debit, opening_credit])
-		
-	return opening
+	return opening'''
+	return gle
 	
 def get_balances_within_period(filters):
         # Ver 1.0 by SSK on 31/10/2016 Begins, Following condition is added
@@ -152,7 +160,7 @@ def get_balances_within_period(filters):
         '''
         
 	gle = frappe.db.sql("""
-		select party, sum(debit) as debit, sum(credit) as credit 
+		select party, cost_center, sum(debit) as debit, sum(credit) as credit 
 		from `tabGL Entry` as ge
 		where company=%(company)s 
 		and ifnull(party_type, '') = %(party_type)s and ifnull(party, '') != ''
@@ -164,7 +172,7 @@ def get_balances_within_period(filters):
                 and not exists(select 1 from `tabAccount` as ac
                                 where ac.name = ge.account
                                 and ac.parent_account = 'Sale of mines product - SMCL')		
-		group by party""", {
+		group by party, cost_center""", {
 			"company": filters.company,
 			"from_date": filters.from_date,
 			"to_date": filters.to_date,
@@ -173,11 +181,12 @@ def get_balances_within_period(filters):
 			"account": filters.accounts
 		}, as_dict=True)
 		
-	balances_within_period = frappe._dict()
+	'''balances_within_period = frappe._dict()
 	for d in gle:
 		balances_within_period.setdefault(d.party, [d.debit, d.credit])
 		
-	return balances_within_period
+	return balances_within_period'''
+	return gle
 	
 def toggle_debit_credit(debit, credit):
 	if flt(debit) > flt(credit):
@@ -198,6 +207,12 @@ def get_columns(filters, show_party_name):
 			"options": filters.party_type,
 			"width": 200
 		},
+		{
+                        "fieldname": "cost_center",
+                        "label": _("Cost Center"),
+                        "fieldtype": "Link",
+                        "width": 200
+                },
 		{
 			"fieldname": "opening_debit",
 			"label": _("Opening (Dr)"),

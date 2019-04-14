@@ -17,6 +17,7 @@ class ImprestRecoup(AccountsController):
                 self.update_defaults()
                 self.update_amounts()
                 self.validate_amounts()
+		self.clearance_date = None
 
         def on_submit(self):
                 for t in frappe.get_all("Imprest Recoup", ["name"], {"branch": self.branch, "imprest_type": self.imprest_type, "entry_date":("<",self.entry_date),"docstatus":0}):
@@ -27,6 +28,9 @@ class ImprestRecoup(AccountsController):
                 self.post_gl_entry()
         
         def on_cancel(self):
+		if self.clearance_date:
+			frappe.throw("Already done bank reconciliation.")
+		
                 for t in frappe.get_all("Imprest Receipt", ["name"], {"name": self.imprest_receipt, "docstatus":1}):
                         msg = '<b>Reference# : <a href="#Form/Imprest Receipt/{0}">{0}</a></b>'.format(t.name)
                         frappe.throw(_("You need to cancel dependent Imprest Receipt entry first.<br>{0}").format(msg),title="Invalid Operation")
@@ -168,7 +172,8 @@ class ImprestRecoup(AccountsController):
                                        "remarks": self.branch,
                                        "against": self.party or self.pay_to_recd_from,
                                        "party_type": self.party_type if self.final_settlement and entries[gl]["type"] == "credit" else "",
-                                       "party": self.party if self.final_settlement and entries[gl]["type"] == "credit" else ""
+                                       "party": self.party if self.final_settlement and entries[gl]["type"] == "credit" else "",
+                                       "business_activity": self.business_activity
                                 })
                         )
                 

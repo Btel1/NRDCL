@@ -18,3 +18,5 @@ Management Dashboard
 Assets
 Budget
 Production
+erpnext
+Rent Management

@@ -1,0 +1,37 @@
+{
+ "add_total_row": 0, 
+ "apply_user_permissions": 1, 
+ "creation": "2019-02-19 17:36:27.470781", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "json": "{\"filters\":[],\"columns\":[[\"name\",\"Employee\"],[\"employee_name\",\"Employee\"],[\"date_of_joining\",\"Employee\"],[\"branch\",\"Employee\"],[\"department\",\"Employee\"],[\"designation\",\"Employee\"],[\"gender\",\"Employee\"],[\"status\",\"Employee\"],[\"company\",\"Employee\"],[\"employment_type\",\"Employee\"],[\"employee_group\",\"Employee\"],[\"reports_to\",\"Employee\"],[\"company_email\",\"Employee\"]],\"sort_by\":\"Employee.bank_ac_no\",\"sort_order\":\"desc\",\"sort_by_next\":null,\"sort_order_next\":\"desc\"}", 
+ "modified": "2019-02-19 17:36:27.470781", 
+ "modified_by": "Administrator", 
+ "module": "HR", 
+ "name": "DES Employee Report", 
+ "owner": "Administrator", 
+ "ref_doctype": "DES Employee", 
+ "report_name": "DES Employee Report", 
+ "report_type": "Report Builder", 
+ "roles": [
+  {
+   "role": "Administrator"
+  }, 
+  {
+   "role": "HR Manager"
+  }, 
+  {
+   "role": "HR User"
+  }, 
+  {
+   "role": "Management"
+  }, 
+  {
+   "role": "Auditor"
+  }
+ ], 
+ "submitted_by": ""
+}

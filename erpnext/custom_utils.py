@@ -18,7 +18,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import msgprint
 from frappe.utils import flt, cint, nowdate, getdate, formatdate
-from erpnext.accounts.utils import get_fiscal_year
+#from erpnext.accounts.utils import get_fiscal_year
 from frappe.utils.data import get_first_day, get_last_day, add_years
 from frappe.desk.form.linked_with import get_linked_doctypes, get_linked_docs
 from frappe.model.naming import getseries
@@ -215,11 +215,11 @@ def check_budget_available(cost_center, budget_account, transaction_date, amount
         budget_amount = frappe.db.sql("select b.action_if_annual_budget_exceeded as action, ba.budget_check, ba.budget_amount from `tabBudget` b, `tabBudget Account` ba where b.docstatus = 1 and ba.parent = b.name and ba.account=%s and b.cost_center=%s and b.fiscal_year = %s", (budget_account, cost_center, str(transaction_date)[0:4]), as_dict=True)
 	
         #action = frappe.db.sql("select action_if_annual_budget_exceeded as action from tabBudget where docstatus = 1 and cost_center = \'" + str(cost_center) + "\' and fiscal_year = " + str(transaction_date)[0:4] + " ", as_dict=True)
-        if budget_amount and budget_amount[0].action == "Ignore":
-                pass 
+	ig_or_stop = budget_amount and budget_amount[0].action or None
+        ig_or_stop_gl = budget_amount and budget_amount[0].budget_check or None
+        if ig_or_stop == "Ignore" or ig_or_stop_gl == "Ignore":
+                return
         else:
-		if budget_amount and budget_amount[0].budget_check == "Ignore":
-                        return
                 if budget_amount:
                         committed = frappe.db.sql("select SUM(cb.amount) as total from `tabCommitted Budget` cb where cb.cost_center=%s and cb.account=%s and cb.po_date between %s and %s", (cost_center, budget_account, str(transaction_date)[0:4] + "-01-01", str(transaction_date)[0:4] + "-12-31"), as_dict=True)
                         consumed = frappe.db.sql("select SUM(cb.amount) as total from `tabConsumed Budget` cb where cb.cost_center=%s and cb.account=%s and cb.po_date between %s and %s", (cost_center, budget_account, str(transaction_date)[0:4] + "-01-01", str(transaction_date)[0:4] + "-12-31"), as_dict=True)
@@ -249,6 +249,10 @@ def get_branch_warehouse(branch):
 	if not wh:
 		frappe.throw("No warehosue linked with your branch or cost center")
         return wh
+
+@frappe.whitelist()
+def get_branch_from_cost_center(cost_center):
+        return frappe.db.get_value("Branch", {"cost_center": cost_center}, "name")
 
 @frappe.whitelist()
 def kick_users():
@@ -285,3 +289,19 @@ def sendmail(recipent, subject, message, sender=None):
 		frappe.sendmail(recipients=recipent, sender=None, subject=subject, message=message)
 	except:
 		pass
+
+def get_settings_value(setting_dt, company, field_name):
+	value = frappe.db.sql("select {0} from `tab{1}` where company = '{2}'".format(field_name, setting_dt, company))
+	return value and value[0][0] or None
+
+###
+# get_production_groups(group):
+###
+def get_production_groups(group):
+	if not group:
+		frappe.throw("Invalid Production Group")
+	groups = []
+	for a in frappe.db.sql("select item_sub_group from `tabProduction Group Item` where parent = %s", group, as_dict=1):
+		groups.append(str(a.item_sub_group))
+	return groups
+

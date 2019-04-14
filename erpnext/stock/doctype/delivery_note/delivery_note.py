@@ -63,9 +63,6 @@ class DeliveryNote(SellingController):
 			'extra_cond': """ and exists (select name from `tabDelivery Note` where name=`tabDelivery Note Item`.parent and is_return=1)"""
 		}]
 
-	def autoname(self):
-		self.name = make_autoname(get_auto_name(self, self.naming_series) + ".####")
-
 	def before_print(self):
 		def toggle_print_hide(meta, fieldname):
 			df = meta.get_field(fieldname)
@@ -100,12 +97,14 @@ class DeliveryNote(SellingController):
 
 	def validate(self):
 		check_future_date(self.posting_date)
+		self.calculate_transportation()
 		super(DeliveryNote, self).validate()
 		self.set_status()
 		self.so_required()
 		self.validate_proj_cust()
 		self.check_close_sales_order("against_sales_order")
 		self.validate_for_items()
+		self.check_transportation_detail()
 		self.validate_warehouse()
 		self.validate_uom_is_integer("stock_uom", "qty")
 		self.validate_with_previous_doc()
@@ -116,6 +115,21 @@ class DeliveryNote(SellingController):
 		self.update_current_stock()
 
 		if not self.installation_status: self.installation_status = 'Not Installed'
+
+        def calculate_transportation(self):
+                total_qty = 0
+                for a in self.items:
+                        total_qty += flt(a.qty)
+
+                self.total_quantity = total_qty
+                self.transportation_charges = flt(self.total_quantity) * flt(self.total_distance) * flt(self.transportation_rate)
+                self.discount_amount = flt(self.discount_or_cost_amount) - flt(self.transportation_charges)
+	
+
+	def check_transportation_detail(self):
+		if self.naming_series == 'Mineral Products':
+			if self.vehicle == None or self.drivers_name == None  or self.contact_no == None:
+				frappe.throw("Transporter Detail Is Mandiatory For Mineral Products")
 
 	def validate_with_previous_doc(self):
 		for fn in (("Sales Order", "against_sales_order", "so_detail"),
@@ -148,6 +162,7 @@ class DeliveryNote(SellingController):
 			return
 
 		for d in self.get('items'):
+			self.validate_warehouse_branch(d.warehouse, self.branch)
 			e = [d.item_code, d.description, d.warehouse, d.against_sales_order or d.against_sales_invoice, d.batch_no or '']
 			f = [d.item_code, d.description, d.against_sales_order or d.against_sales_invoice]
 
@@ -379,6 +394,7 @@ def make_sales_invoice(source_name, target_doc=None):
 					target_doc.qty = source_doc.qty - invoiced_qty_map.get(source_doc.name, 0) + a.qty
 		else:
 			target_doc.qty = source_doc.qty - invoiced_qty_map.get(source_doc.name, 0)
+		target_doc.name_tolerance = "Default"
 
 	doc = get_mapped_doc("Delivery Note", source_name, 	{
 		"Delivery Note": {

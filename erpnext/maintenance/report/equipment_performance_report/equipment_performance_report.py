@@ -296,12 +296,12 @@ def get_data(filters):
                                where hi.parent = hp.name 
                                and hp.equipment_type = '{0}'
 			       and hp.equipment_model = '{1}'
-			""".format(eq.equipment_type, eq.equipment_model), as_dict=1, debug =1)
-
+			""".format(eq.equipment_type, eq.equipment_model), as_dict=1)
 		rate = []
 		bench = []
 		total_hc = 0
 		for a in benchmark:
+			frappe.msgprint("eq{0}, bn {1}".format(eq.name, a))
 			from_date,to_date,no_of_months, from_date1, to_date1, ra  = get_date_conditions(filters)
 			ta = ta1= ta2 =  ta3 = ta4 = 0.0
 			if not a.t:

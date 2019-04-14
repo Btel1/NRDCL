@@ -28,6 +28,14 @@ frappe.ui.form.on('Revenue Target', {
 				}
 			}
 		}
+		 cur_frm.set_query("cost_center", function(){
+                        return {
+                                "filters": [
+                                        ["is_group","=", "0"]
+                                        
+                                ]
+                        }
+                });
 	},
 	refresh: function(frm) {
 		if(frm.doc.docstatus === 1){
@@ -52,7 +60,20 @@ frappe.ui.form.on('Revenue Target', {
 				frappe.set_route("query-report", "Revenue Target");
 			}
 		);
-	}
+	},
+
+	get_accounts: function(frm){
+		return frappe.call({
+			method: "get_accounts",
+			doc:frm.doc,
+			callback: function(r, rt){
+				frm.refresh_field("revenue_target_account");
+				frm.refresh_fields();
+				cur_frm.set_value("cost_center", frm.doc.cost_center);
+
+			}
+		});
+	},
 });
 
 frappe.ui.form.on('Revenue Target Account',{

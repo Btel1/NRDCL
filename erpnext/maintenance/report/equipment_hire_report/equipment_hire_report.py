@@ -24,10 +24,16 @@ def get_columns():
 		("Hour W/O Fuel")+":data:80",
 		("Rate W/O Fuel")+":Currency:150",
 		("Amount W/O Fuel")+":Currency:150",
+		("Hour Cft-Broadleaf")+":data:80",
+		("Rate Cft-Broadleaf")+":Currency:150",
+		("Amount Cft-Broadleaf")+":Currency:150",
+		("Hour Cft-Conifer")+":data:80",
+		("Rate Cft-Conifer")+":Currency:150",
+		("Amount Cft-Conifer")+":Currency:150",
 		("Idle Hour")+ ":data:80",
        		("Idle Rate")+":Currency:150",
 		("Idle Amount") + ":Currency:150",
-		("CDCL")+":Currency:150",
+		("Own Company")+":Currency:150",
 		("Private")+":Currency:150",
 		("Others")+":Currency:150",
 		("Total Hire Charge")+":Currency:150",
@@ -53,9 +59,27 @@ def get_data(filters):
         CASE hid.rate_type
         WHEN 'Without Fuel' THEN (select sum(hid.amount_work))
         END,
+        CASE hid.rate_type
+        WHEN 'Cft - Broadleaf' THEN (select sum(hid.total_work_hours))
+        END,
+        CASE hid.rate_type
+        WHEN 'Cft - Broadleaf' THEN (select hid.work_rate)
+        END,
+        CASE hid.rate_type
+        WHEN 'Cft - Broadleaf' THEN (select sum(hid.amount_work))
+        END,
+        CASE hid.rate_type
+        WHEN 'Cft - Conifer' THEN (select sum(hid.total_work_hours))
+        END,
+        CASE hid.rate_type
+        WHEN 'Cft - Conifer' THEN (select hid.work_rate)
+        END,
+        CASE hid.rate_type
+        WHEN 'Cft - Conifer' THEN (select sum(hid.amount_work))
+        END,
         sum(hid.total_idle_hours), hid.idle_rate, sum(hid.amount_idle),
         CASE hci.owned_by
-        WHEN 'CDCL' THEN (select sum(hid.total_amount))
+        WHEN 'Own Company' THEN (select sum(hid.total_amount))
         END,
         CASE hci.owned_by
         WHEN 'Private' THEN (select sum(hid.total_amount))
@@ -82,4 +106,5 @@ def get_data(filters):
 	if filters.get("customer"):
 		query += " and hci.customer = \'" + str(filters.customer) + "\'"
 	query += " group by hid.equipment, hci.ehf_name"
+	frappe.msgprint(query)
 	return frappe.db.sql(query)
