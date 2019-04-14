@@ -84,8 +84,12 @@ def get_data(filters):
 					or '{4}' between eh.from_date and ifnull(eh.to_date, now()))
 					 group by eh.branch, eh.parent order by eh.branch, eh.parent
                         """.format(not_cdcll, branch_cond, dis, filters.from_date, filters.to_date)
+<<<<<<< HEAD
         equipments = frappe.db.sql(query, as_dict=1);
 	vl_consumption = 0.0
+=======
+	equipments = frappe.db.sql(query, as_dict=1);
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
     	for eq in equipments:
                 # `tabVehicle Logbook`
 		if filters.own_cc:

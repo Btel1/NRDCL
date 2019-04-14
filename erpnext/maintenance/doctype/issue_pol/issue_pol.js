@@ -56,7 +56,7 @@ frappe.ui.form.on('Issue POL', {
 		})
 	}
 });
-
+cur_frm.add_fetch("branch", "cost_center", "cost_center")
 cur_frm.add_fetch("equipment", "equipment_number", "equipment_number")
 
 frappe.ui.form.on("Issue POL", "refresh", function(frm) {

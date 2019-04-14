@@ -84,6 +84,7 @@ class POL(StockController):
 		self.update_stock_ledger()
 		self.update_general_ledger(1)
 		self.make_pol_entry()
+		self.post_journal_entry()
 	
 	def check_budget(self):
 		if self.hiring_cost_center:
@@ -288,7 +289,7 @@ class POL(StockController):
 		if not expense_bank_account:
  			frappe.throw("No Default Payable Account set in Company")
 
-		ba = get_equipment_ba(a.equipment) 
+		ba = get_equipment_ba(self.equipment) 
 
 		if expense_bank_account and pol_account:
 			je = frappe.new_doc("Journal Entry")

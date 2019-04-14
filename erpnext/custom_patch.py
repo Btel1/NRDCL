@@ -9,6 +9,7 @@ from erpnext.hr.hr_custom_functions import get_month_details, get_payroll_settin
 from datetime import timedelta, date
 from erpnext.custom_utils import get_branch_cc, get_branch_warehouse
 
+<<<<<<< HEAD
 def update_emp():
 	for a in frappe.db.sql("select name from tabEmployee where docstatus = 0", as_dict=1):
 		print(str(a.name))
@@ -34,6 +35,24 @@ def update_production():
 			i.db_set("item_sub_group", item_sub_group)
 			i.db_set("timber_species", timber_species)
 		"""
+=======
+def update_equipment_history():
+        equ = frappe.db.sql("select name from `tabEquipment`", as_dict =1)
+        for eq in equ:
+                print(eq)
+                doc = frappe.get_doc("Equipment", eq.name)
+                #doc.set("equipment_history", [])
+                doc.business_activity = 'Test BA'
+                doc.save()
+
+def move_cc_branch():
+	ccs = frappe.db.sql("select name, branch from `tabCost Center` where branch is not null", as_dict=1)
+	for cc in ccs:
+		print(cc.branch)
+		if cc.branch:
+			b = frappe.get_doc("Branch", cc.branch)
+			b.db_set("cost_center", cc.name)
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 
 def update_mech():
 	ml = frappe.db.sql("select name from `tabMechanical Payment` where docstatus = 1 and payment_for is null", as_dict=1)

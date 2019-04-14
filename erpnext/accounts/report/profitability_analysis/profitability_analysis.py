@@ -177,6 +177,10 @@ def set_gl_entries_by_account(company, business_activity, from_date, to_date, ba
                 additional_conditions.append(" and business_activity = '{0}'".format(business_activity))
         else:
                 additional_conditions.append(" and 1 = 1 ")
+<<<<<<< HEAD
+=======
+	frappe.msgprint("{0}".format(business_activity))
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 	gl_entries = frappe.db.sql("""select posting_date, {based_on} as based_on, debit, credit, 
 		is_opening, (select root_type from `tabAccount` where name = account) as type
 		from `tabGL Entry` where company=%(company)s

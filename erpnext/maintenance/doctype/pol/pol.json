@@ -1455,8 +1455,13 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
+<<<<<<< HEAD
  "modified": "2018-10-16 03:46:49.118836", 
  "modified_by": "dorji2392@bt.bt", 
+=======
+ "modified": "2018-09-24 12:16:53.801073", 
+ "modified_by": "Administrator", 
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
  "module": "Maintenance", 
  "name": "POL", 
  "name_case": "", 

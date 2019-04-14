@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
+<<<<<<< HEAD
 from frappe.utils.data import nowdate, add_years, add_days, date_diff
 
 class TimberClass(Document):
@@ -21,6 +22,12 @@ class TimberClass(Document):
                 for a in reversed(self.items):
                         a.to_date = to_date
                         to_date = add_days(a.from_date, -1)
+=======
+
+class TimberClass(Document):
+	def validate(self):
+		pass
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 
 
 

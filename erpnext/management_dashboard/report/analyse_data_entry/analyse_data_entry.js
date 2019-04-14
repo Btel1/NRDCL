@@ -12,9 +12,10 @@ frappe.query_reports["Analyse Data Entry"] = {
 		{
                         	"fieldname": "transaction",
                         	"label": ("Transaction"),
-                        	"fieldtype": "Select",
+                        	"fieldtype": "Link",
                         	"width": "80",
-                        	"options": ["", "Break Down Report","Job Card", "Equipment Hiring Form", "Material Issue", "Material Transfer", "Material Receipt","Purchase Order", "Journal Entry","Payment Entry", "Direct Payment"]
+				//"reqd": 1,
+                        	"options": "Data Entry List"
 
                 },
 		{

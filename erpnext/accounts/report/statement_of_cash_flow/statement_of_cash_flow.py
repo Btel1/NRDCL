@@ -107,9 +107,15 @@ def get_account_type_based_data(cost_center, business_activity, company, account
 	ba = ''
 	for period in period_list:
 		if business_activity:
+<<<<<<< HEAD
                 	ba = " and business_activity = '{0}'".format(business_activity)
        		else:
             		ba = " and 1 = 1 "
+=======
+                ba = " and business_activity = '{0}'".format(business_activity)
+        else:
+            	ba = " and 1 = 1 "
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 		if not cost_center:
 			gl_sum = frappe.db.sql_list("""
 				select sum(credit) - sum(debit)

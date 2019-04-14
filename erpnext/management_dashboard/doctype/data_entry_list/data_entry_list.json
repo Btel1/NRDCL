@@ -4,7 +4,11 @@
  "allow_rename": 0, 
  "autoname": "field:data_entry_field", 
  "beta": 0, 
+<<<<<<< HEAD
  "creation": "2018-09-18 17:47:32.300977", 
+=======
+ "creation": "2018-09-18 14:55:17.068746", 
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -73,7 +77,11 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
+<<<<<<< HEAD
  "modified": "2018-09-18 18:33:08.218285", 
+=======
+ "modified": "2018-09-18 16:16:47.979839", 
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
  "modified_by": "Administrator", 
  "module": "Management Dashboard", 
  "name": "Data Entry List", 
@@ -99,6 +107,7 @@
    "share": 1, 
    "submit": 1, 
    "write": 1
+<<<<<<< HEAD
   }, 
   {
    "amend": 0, 
@@ -119,6 +128,8 @@
    "share": 1, 
    "submit": 0, 
    "write": 1
+=======
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
   }
  ], 
  "quick_entry": 0, 

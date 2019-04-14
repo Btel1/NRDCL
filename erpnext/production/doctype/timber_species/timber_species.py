@@ -12,7 +12,17 @@ class TimberSpecies(Document):
 		self.check_duplicate(self.species.lower())
 
 	def validate(self):
+<<<<<<< HEAD
 		pass
+=======
+		self.check_species_type()
+
+	def check_species_type(self):
+		if not self.is_conifer and not self.is_broadleaf:
+			frappe.throw("The species should either be a conifer or broadleaf")
+		if self.is_conifer and self.is_broadleaf:
+			frappe.throw("The species should either be a conifer or broadleaf")
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 
 	def check_duplicate(self, species):
 		for a in frappe.db.sql("select name from `tabTimber Species` where LOWER(name) = %s", species, as_dict=1):

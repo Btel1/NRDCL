@@ -107,6 +107,10 @@ def get_rootwise_opening_balances(filters, report_type):
 	else:
 		cost_centers = filters.cost_center 
 	
+<<<<<<< HEAD
+=======
+	frappe.msgprint("addmain {0}".format(additional_conditions))
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 	gle = frappe.db.sql("""
 		select
 			account, sum(debit) as opening_debit, sum(credit) as opening_credit
@@ -124,7 +128,11 @@ def get_rootwise_opening_balances(filters, report_type):
 			"year_start_date": filters.year_start_date,
                         "cost_center": cost_centers
 		},
+<<<<<<< HEAD
 		as_dict=True, debug = 0)
+=======
+		as_dict=True, debug =1)
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1
 
 	opening = frappe._dict()
 	for d in gle:

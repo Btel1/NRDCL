@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Timber Class', {
 	refresh: function(frm) {
+<<<<<<< HEAD
                 disable_drag_drop(frm)
         },
 
@@ -27,3 +28,8 @@ frappe.ui.form.on('Royal Rate', {
 
 
 
+=======
+
+	}
+});
+>>>>>>> 8e631e56e9732fe4f351a3e1203675c0b67d9dc1

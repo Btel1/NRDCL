@@ -18,7 +18,7 @@ class IssuePOL(StockController):
 	def validate(self):
 		check_future_date(self.posting_date)
 		self.validate_branch()
-		self.populate_data()
+		#self.populate_data()
 		self.validate_data()
 		self.validate_branch()
 		self.validate_posting_time()
